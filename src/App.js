@@ -33,6 +33,9 @@ export default function RouteConfigExample() {
           {routes.map((route, i) => (
             <RouteWithSubRoutes key={i} {...route} />
           ))}
+          <Route exact path="/">
+            <Index />
+          </Route>  
         </Switch>
       </div>
     </Router>

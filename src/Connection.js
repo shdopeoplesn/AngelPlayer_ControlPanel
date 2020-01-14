@@ -14,7 +14,7 @@ import icon_device_pc from './images/device_pc.png';
 
 
 class Device {
-  constructor(cid,ipv4,mac,device_name,os,cpu,mem,user_name,apps) {
+  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps) {
     this.cid_ = cid;
     this.ipv4_ = ipv4;
     this.mac_ = mac;
@@ -22,6 +22,8 @@ class Device {
     this.os_ = os;
     this.cpu_ = cpu;
     this.mem_ = mem;
+    this.cpu_usage_ = cpu_usage;
+    this.mem_remain_ = mem_remain;
     this.user_name_ = user_name;
     this.apps_ = apps;
   }
@@ -57,9 +59,11 @@ class Connection extends React.Component {
         let os = data_array["os"]
         let cpu = data_array["cpu"]
         let mem = data_array["mem"]
+        let cpu_usage = data_array["cpu_usage"]
+        let mem_remain = data_array["mem_remain"]
         let user_name = data_array["user_name"]
         let apps = data_array["apps"]
-        g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,user_name,apps))
+        g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps))
       }
     };
   }
@@ -175,7 +179,15 @@ function UIDetail(id){
             <tr>
               <td>RAM</td>
               <td>{ g_devices[id].mem_ }</td>
-            </tr>                        
+            </tr>
+            <tr>
+              <td>CPU Usage</td>
+              <td>{ g_devices[id].cpu_usage_ }</td>
+            </tr> 
+            <tr>
+              <td>RAM Reamin</td>
+              <td>{ g_devices[id].mem_remain_ }</td>
+            </tr>                     
             <tr>
               <td>User</td>
               <td>{ g_devices[id].user_name_ }</td>

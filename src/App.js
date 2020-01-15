@@ -6,7 +6,7 @@ import {
   useParams
 } from "react-router-dom";
 
-import {UIIndex,UIDetail} from './Connection';
+import {UIList,UIDetail} from './Connection';
 // Some folks find value in a centralized route config.
 // A route config is just data. React is great at mapping
 // data into components, and <Route> is a component.
@@ -16,8 +16,8 @@ import {UIIndex,UIDetail} from './Connection';
 // way you'd do inside a `<Switch>`.
 const routes = [
   {
-    path: "/index",
-    component: Index
+    path: "/list",
+    component: List
   },
   {
     path: "/detail/:id",
@@ -34,7 +34,7 @@ export default function RouteConfigExample() {
             <RouteWithSubRoutes key={i} {...route} />
           ))}
           <Route exact path="/">
-            <Index />
+            <List />
           </Route>  
         </Switch>
       </div>
@@ -56,8 +56,8 @@ function RouteWithSubRoutes(route) {
   );
 }
 
-function Index() {
-  return UIIndex();
+function List() {
+  return UIList();
 }
 
 function Detail() {

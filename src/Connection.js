@@ -9,6 +9,7 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Table from 'react-bootstrap/Table'
+import ProgressBar from 'react-bootstrap/ProgressBar'
 
 import icon_device_pc from './images/device_pc.png';
 
@@ -98,7 +99,7 @@ class ChildComponent extends React.Component {
   }
 }
 
-function UIIndex(){
+function UIList(){
   let lists = []
   for(let i = 0; i < g_devices.length; i++){
     lists.push(
@@ -148,6 +149,7 @@ function UIDetail(id){
       </tr>
     );
   }
+
   return (
     <>
       <Container>
@@ -178,15 +180,15 @@ function UIDetail(id){
             </tr>
             <tr>
               <td>RAM</td>
-              <td>{ g_devices[id].mem_ }</td>
+              <td>{ g_devices[id].mem_ }MB</td>
             </tr>
             <tr>
               <td>CPU Usage</td>
-              <td>{ g_devices[id].cpu_usage_ }</td>
+              <td><ProgressBar now={g_devices[id].cpu_usage_} label={`${g_devices[id].cpu_usage_.substring(0,4)}%`} /></td>
             </tr> 
             <tr>
-              <td>RAM Reamin</td>
-              <td>{ g_devices[id].mem_remain_ }</td>
+              <td>RAM Usage</td>
+              <td><ProgressBar max = {g_devices[id].mem_} now={ g_devices[id].mem_ - g_devices[id].mem_remain_} label={`${((g_devices[id].mem_ - g_devices[id].mem_remain_) / g_devices[id].mem_ * 100).toFixed(2) }%`} />({g_devices[id].mem_ - g_devices[id].mem_remain_}/{g_devices[id].mem_}MB)</td>
             </tr>                     
             <tr>
               <td>User</td>
@@ -204,6 +206,6 @@ function UIDetail(id){
 export default Connection;
 export {
   ChildComponent,
-  UIIndex,
+  UIList,
   UIDetail,
 }

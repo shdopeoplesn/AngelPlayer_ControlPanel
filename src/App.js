@@ -6,7 +6,8 @@ import {
   useParams
 } from "react-router-dom";
 
-import {UIList,UIDetail} from './Connection';
+import {UIList,UIDetail, UISearch} from './Connection';
+
 // Some folks find value in a centralized route config.
 // A route config is just data. React is great at mapping
 // data into components, and <Route> is a component.
@@ -22,6 +23,10 @@ const routes = [
   {
     path: "/detail/:id",
     component: Detail,
+  },
+  {
+    path: "/search/:id",
+    component: Search,
   }
 ];
 
@@ -63,4 +68,9 @@ function List() {
 function Detail() {
   let { id } = useParams();
   return UIDetail(id);
+}
+
+function Search() {
+  let { id } = useParams();
+  return UISearch(id);
 }

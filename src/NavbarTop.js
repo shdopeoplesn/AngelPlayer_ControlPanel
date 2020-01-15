@@ -1,4 +1,5 @@
 import React from "react";
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Nav from 'react-bootstrap/Nav'
 import Navbar from 'react-bootstrap/Navbar'
@@ -8,7 +9,22 @@ import FormControl from 'react-bootstrap/FormControl'
 import {NavDropdown} from 'react-bootstrap/'
 
 class NavbarTop extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: '',url: ''};
 
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+    this.setState({url: "/search/" + event.target.value});
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+  }
   render() {
       return (
         <Navbar bg="light" expand="lg">
@@ -27,8 +43,8 @@ class NavbarTop extends React.Component {
               </NavDropdown>
             </Nav>
             <Form inline>
-              <FormControl type="text" placeholder="Search" className="mr-sm-2" />
-              <Button variant="outline-success">Search</Button>
+              <FormControl value={this.state.value} onChange={this.handleChange} type="text" placeholder="Search" className="mr-sm-2" />
+              <Button href={this.state.url} type="submit" variant="outline-success">Search</Button>
             </Form>
           </Navbar.Collapse>
         </Navbar>

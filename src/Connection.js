@@ -1,7 +1,7 @@
 import React from 'react';
 import './index.css';
-
 import {Link} from "react-router-dom";
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from "react-bootstrap/Button";
 import Card from 'react-bootstrap/Card'
@@ -10,12 +10,13 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Table from 'react-bootstrap/Table'
 import ProgressBar from 'react-bootstrap/ProgressBar'
+import Accordion from 'react-bootstrap/Accordion'
 
 import icon_device_pc from './images/device_pc.png';
 
 
 class Device {
-  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps) {
+  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process) {
     this.cid_ = cid;
     this.ipv4_ = ipv4;
     this.mac_ = mac;
@@ -27,13 +28,14 @@ class Device {
     this.mem_remain_ = mem_remain;
     this.user_name_ = user_name;
     this.apps_ = apps;
+    this.process_ = process;
   }
 }
 
 var g_devices = [];
 const client = new WebSocket('ws://127.0.0.1:7779');
-
-let flag_receive = false
+let flag_connected = false;
+let flag_receive = false;
 class Connection extends React.Component {  
   componentWillMount() {
     client.onopen = () => {
@@ -49,6 +51,7 @@ class Connection extends React.Component {
       }
       if(data === "ACK"){
         flag_receive = false
+        flag_connected = true;
         return 0
       }
       if(flag_receive === true){
@@ -64,7 +67,8 @@ class Connection extends React.Component {
         let mem_remain = data_array["mem_remain"]
         let user_name = data_array["user_name"]
         let apps = data_array["apps"]
-        g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps))
+        let process = data_array["process"]
+        g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process))
       }
     };
   }
@@ -104,12 +108,12 @@ function UIList(){
   for(let i = 0; i < g_devices.length; i++){
     lists.push(
       <Col sm>
-        <Card style={{ width: '12rem' }}>
+        <Card style={{ width: '14rem' }}>
           <Card.Img variant="top" src= {icon_device_pc} />
           <Card.Body>
             <Card.Title>{ g_devices[i].cid_ }</Card.Title>
             <Card.Text>
-              { g_devices[i].os_ }
+                { g_devices[i].device_name_ }
             </Card.Text>
             <Link to={ "/detail/" + i }><Button variant="primary">Detail</Button></Link>
           </Card.Body>
@@ -128,9 +132,45 @@ function UIList(){
   );
 }
 
+
+function UISearch(keyword){
+  let lists = []
+  let found = false;
+  for(let i = 0; i < g_devices.length; i++){
+    if(g_devices[i].cid_.includes(keyword) || g_devices[i].device_name_.includes(keyword) 
+    || g_devices[i].user_name_.includes(keyword)){
+      lists.push(
+        <Col sm>
+          <Card style={{ width: '14rem' }}>
+            <Card.Img variant="top" src= {icon_device_pc} />
+            <Card.Body>
+              <Card.Title>{ g_devices[i].cid_ }</Card.Title>
+              <Card.Text>
+                { g_devices[i].device_name_ }
+              </Card.Text>
+              <Link to={ "/detail/" + i }><Button variant="primary">Detail</Button></Link>
+            </Card.Body>
+          </Card>
+        </Col>
+      );
+      found = true;
+    }
+  }
+  if(!found && flag_connected)lists.push("Not Found with keywords: " + keyword);
+  return (
+    <>
+      <Container>
+        <Row>
+          {lists}
+        </Row>
+      </Container>
+    </>
+  );
+}
+
+
 function UIDetail(id){
   var apps_array = g_devices[id].apps_.split("|")
-
   let apps_lists = []
   apps_lists.push(            
   <thead>
@@ -148,12 +188,30 @@ function UIDetail(id){
       <td>{ apps_array[i + 3] }</td>
       </tr>
     );
-  }
+  };
+
+  var process_array = g_devices[id].process_.split("|")
+  let process_lists = []
+  process_lists.push(            
+  <thead>
+    <td>PID</td>
+    <td>Process Name</td>
+    <td>Memory Usage</td>
+  </thead>)
+  for(let i = 0; i < process_array.length; i+=3){
+    process_lists.push(
+      <tr>
+      <td>{ process_array[i] }</td>
+      <td>{ process_array[i + 1] }</td>
+      <td>{ process_array[i + 2]/1024/1024 }MB</td>
+      </tr>
+    );
+  };
 
   return (
     <>
       <Container>
-        <Table striped bordered hover>
+        <Table responsive striped bordered hover>
             <tr>
               <td>Custom ID</td>
               <td>{ g_devices[id].cid_ }</td>
@@ -196,9 +254,36 @@ function UIDetail(id){
             </tr>
         </Table>
       </Container>
-      <Table>
-      { apps_lists }
-      </Table>
+      <Accordion defaultActiveKey="2">
+          <Card>
+            <Card.Header>
+              <Accordion.Toggle as={Button} variant="link" eventKey="0">
+                Running Process List
+              </Accordion.Toggle>
+            </Card.Header>
+            <Accordion.Collapse eventKey="0">
+              <Card.Body>
+                <Table responsive striped bordered hover>
+                  { process_lists }
+                </Table>
+              </Card.Body>
+            </Accordion.Collapse>
+          </Card>
+          <Card>
+            <Card.Header>
+              <Accordion.Toggle as={Button} variant="link" eventKey="1">
+                Installed Application List
+              </Accordion.Toggle>
+            </Card.Header>
+            <Accordion.Collapse eventKey="1">
+              <Card.Body>
+                <Table responsive striped bordered hover>
+                  { apps_lists }
+                </Table>
+              </Card.Body>
+            </Accordion.Collapse>
+          </Card>
+        </Accordion>
     </>
   );
 }
@@ -208,4 +293,5 @@ export {
   ChildComponent,
   UIList,
   UIDetail,
+  UISearch,
 }

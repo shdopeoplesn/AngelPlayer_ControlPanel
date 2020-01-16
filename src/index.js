@@ -4,16 +4,13 @@ import * as serviceWorker from './serviceWorker';
 
 import App from './App';
 import NavbarTop from './NavbarTop';
-import Connection,{ChildComponent} from './Connection';
+import Connection from './Connection';
 
 ReactDOM.render(<NavbarTop />, document.getElementById('navbartop'));
 ReactDOM.render(<App />, document.getElementById('content'));
 ReactDOM.render(<Connection />, document.getElementById('connection'));
 
-ReactDOM.render(<ChildComponent />, document.getElementById('root'));
-
 function tick() {
-    ReactDOM.render(<ChildComponent />, document.getElementById('root'));
     ReactDOM.render(<App />, document.getElementById('content'));
   }
 setInterval(tick, 1000);

@@ -11,12 +11,14 @@ import Col from 'react-bootstrap/Col'
 import Table from 'react-bootstrap/Table'
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import Accordion from 'react-bootstrap/Accordion'
+import Spinner from 'react-bootstrap/Spinner'
 
 import icon_device_pc from './images/device_pc.png';
 
 
 class Device {
-  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process) {
+  constructor(sid,cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process) {
+    this.sid_ = sid;
     this.cid_ = cid;
     this.ipv4_ = ipv4;
     this.mac_ = mac;
@@ -56,19 +58,23 @@ class Connection extends React.Component {
       }
       if(flag_receive === true){
         let data_array = JSON.parse(data)
-        let cid = data_array["cid"]
-        let ipv4 = data_array["ipv4"]
-        let mac = data_array["mac"]
-        let device_name = data_array["device_name"]
-        let os = data_array["os"]
-        let cpu = data_array["cpu"]
-        let mem = data_array["mem"]
-        let cpu_usage = data_array["cpu_usage"]
-        let mem_remain = data_array["mem_remain"]
-        let user_name = data_array["user_name"]
-        let apps = data_array["apps"]
-        let process = data_array["process"]
-        g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process))
+        
+        for(let i = 0; i < data_array.length; i++){
+          let sid = data_array[i]["sid"]
+          let cid = data_array[i]["cid"]
+          let ipv4 = data_array[i]["ipv4"]
+          let mac = data_array[i]["mac"]
+          let device_name = data_array[i]["device_name"]
+          let os = data_array[i]["os"]
+          let cpu = data_array[i]["cpu"]
+          let mem = data_array[i]["mem"]
+          let cpu_usage = data_array[i]["cpu_usage"]
+          let mem_remain = data_array[i]["mem_remain"]
+          let user_name = data_array[i]["user_name"]
+          let apps = data_array[i]["apps"]
+          let process = data_array[i]["process"]
+          g_devices.push(new Device(sid,cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process))
+        };
       }
     };
   }
@@ -80,65 +86,25 @@ class Connection extends React.Component {
   }
 }
 
-class ChildComponent extends React.Component {
+class UIList extends React.Component{
   componentDidUpdate(){
     this.sendMessage()
   }
 
   sendMessage=()=>{
-      //const {websocket} = this.props // websocket instance passed as props to the child component.
-
-      try {
-          const data = new Buffer('GET').toString('base64');
-          client.send(data) //send data to the server
-      } catch (error) {
-          console.log(error) // catch error
-      }
+    //const {websocket} = this.props // websocket instance passed as props to the child component.
+    try {
+        const data = new Buffer('GETLIST').toString('base64');
+        client.send(data) //send data to the server
+    } catch (error) {
+        console.log(error) // catch error
+    }
   }
-
   render() {
-      return (
-        null
-      );
-  }
-}
+    let lists = [];
+    let loading_spinner = [];
 
-function UIList(){
-  let lists = []
-  for(let i = 0; i < g_devices.length; i++){
-    lists.push(
-      <Col sm>
-        <Card style={{ width: '14rem' }}>
-          <Card.Img variant="top" src= {icon_device_pc} />
-          <Card.Body>
-            <Card.Title>{ g_devices[i].cid_ }</Card.Title>
-            <Card.Text>
-                { g_devices[i].device_name_ }
-            </Card.Text>
-            <Link to={ "/detail/" + i }><Button variant="primary">Detail</Button></Link>
-          </Card.Body>
-        </Card>
-      </Col>
-    );
-  }
-  return (
-    <>
-      <Container>
-        <Row>
-          {lists}
-        </Row>
-      </Container>
-    </>
-  );
-}
-
-
-function UISearch(keyword){
-  let lists = []
-  let found = false;
-  for(let i = 0; i < g_devices.length; i++){
-    if(g_devices[i].cid_.includes(keyword) || g_devices[i].device_name_.includes(keyword) 
-    || g_devices[i].user_name_.includes(keyword)){
+    for(let i = 0; i < g_devices.length; i++){
       lists.push(
         <Col sm>
           <Card style={{ width: '14rem' }}>
@@ -146,151 +112,189 @@ function UISearch(keyword){
             <Card.Body>
               <Card.Title>{ g_devices[i].cid_ }</Card.Title>
               <Card.Text>
-                { g_devices[i].device_name_ }
+                  { g_devices[i].device_name_ }
               </Card.Text>
-              <Link to={ "/detail/" + i }><Button variant="primary">Detail</Button></Link>
+              <Link to={ "/detail/" + g_devices[i].sid_ }><Button variant="primary">Detail</Button></Link>
             </Card.Body>
           </Card>
         </Col>
       );
-      found = true;
     }
+    if(g_devices.length === 0){
+      loading_spinner.push(<Spinner animation="border" variant="primary" className="centered" />);
+      return (<>{ loading_spinner }</>);
+    }
+    return (
+      <>
+        <Container>
+          { loading_spinner }
+          <Row>
+            { lists }
+          </Row>
+        </Container>
+      </>
+    );
   }
-  if(!found && flag_connected)lists.push("Not Found with keywords: " + keyword);
-  return (
-    <>
-      <Container>
-        <Row>
-          {lists}
-        </Row>
-      </Container>
-    </>
-  );
 }
 
 
-function UIDetail(id){
-  var apps_array = g_devices[id].apps_.split("|")
-  let apps_lists = []
-  apps_lists.push(            
-  <thead>
-    <td col="2">Apps Name</td>
-    <td col="2">Version</td>
-    <td col="2">Installed Date</td>
-    <td col="2">Path</td>
-  </thead>)
-  for(let i = 0; i < apps_array.length; i+=4){
-    apps_lists.push(
-      <tr>
-      <td>{ apps_array[i] }</td>
-      <td>{ apps_array[i + 1] }</td>
-      <td>{ apps_array[i + 2] }</td>
-      <td>{ apps_array[i + 3] }</td>
-      </tr>
-    );
-  };
+class UISearch extends React.Component{
+  
+}
 
-  var process_array = g_devices[id].process_.split("|")
-  let process_lists = []
-  process_lists.push(            
-  <thead>
-    <td>PID</td>
-    <td>Process Name</td>
-    <td>Memory Usage</td>
-  </thead>)
-  for(let i = 0; i < process_array.length; i+=3){
-    process_lists.push(
-      <tr>
-      <td>{ process_array[i] }</td>
-      <td>{ process_array[i + 1] }</td>
-      <td>{ process_array[i + 2]/1024/1024 }MB</td>
-      </tr>
-    );
-  };
 
-  return (
-    <>
-      <Container>
-        <Table responsive striped bordered hover>
+class UIDetail extends React.Component{
+  componentDidUpdate(){
+    this.sendMessage()
+  }
+
+  sendMessage=()=>{
+    //const {websocket} = this.props // websocket instance passed as props to the child component.
+    try {
+        const data = new Buffer('GETID-' + this.props.sid).toString('base64');
+        client.send(data) //send data to the server
+    } catch (error) {
+        console.log(error) // catch error
+    }
+  }
+  render() {
+    let apps_lists = [];
+    let process_lists = [];
+    let main_lists = [];
+    let loading_spinner = [];
+    try{
+      if(g_devices[0] != null){
+        var apps_array = g_devices[0].apps_
+        apps_lists.push(            
+        <thead>
+          <td col="2">Apps Name</td>
+          <td col="2">Version</td>
+          <td col="2">Installed Date</td>
+          <td col="2">Path</td>
+        </thead>);
+        for(let i = 0; i < apps_array.length; i++){
+          apps_lists.push(
             <tr>
-              <td>Custom ID</td>
-              <td>{ g_devices[id].cid_ }</td>
+            <td>{ apps_array[i]["name_"] }</td>
+            <td>{ apps_array[i]["version_"] }</td>
+            <td>{ apps_array[i]["date_"] }</td>
+            <td>{ apps_array[i]["path_"] }</td>
             </tr>
+          );
+        };
+      
+        var process_array = g_devices[0].process_
+        process_lists.push(            
+        <thead>
+          <td>PID</td>
+          <td>Process Name</td>
+          <td>Memory Usage</td>
+        </thead>);
+        for(let i = 0; i < process_array.length; i++){
+          process_lists.push(
             <tr>
-              <td>IPv4 Address</td>
-              <td>{ g_devices[id].ipv4_ }</td>
+            <td>{ process_array[i]["pid_"] }</td>
+            <td>{ process_array[i]["name_"] }</td>
+            <td>{ process_array[i]["mem_usage_"]/1024/1024 }MB</td>
             </tr>
-            <tr>
-              <td>MAC Address</td>
-              <td>{ g_devices[id].mac_ }</td>
-            </tr>
-            <tr>
-              <td>Device Name</td>
-              <td>{ g_devices[id].device_name_ }</td>
-            </tr>
-            <tr>
-              <td>OS</td>
-              <td>{ g_devices[id].os_ }</td>
-            </tr>
-            <tr>
-              <td>Processor</td>
-              <td>{ g_devices[id].cpu_ }</td>
-            </tr>
-            <tr>
-              <td>RAM</td>
-              <td>{ g_devices[id].mem_ }MB</td>
-            </tr>
-            <tr>
-              <td>CPU Usage</td>
-              <td><ProgressBar now={g_devices[id].cpu_usage_} label={`${g_devices[id].cpu_usage_.substring(0,4)}%`} /></td>
-            </tr> 
-            <tr>
-              <td>RAM Usage</td>
-              <td><ProgressBar max = {g_devices[id].mem_} now={ g_devices[id].mem_ - g_devices[id].mem_remain_} label={`${((g_devices[id].mem_ - g_devices[id].mem_remain_) / g_devices[id].mem_ * 100).toFixed(2) }%`} />({g_devices[id].mem_ - g_devices[id].mem_remain_}/{g_devices[id].mem_}MB)</td>
-            </tr>                     
-            <tr>
-              <td>User</td>
-              <td>{ g_devices[id].user_name_ }</td>
-            </tr>
-        </Table>
-      </Container>
-      <Accordion defaultActiveKey="2">
-          <Card>
-            <Card.Header>
-              <Accordion.Toggle as={Button} variant="link" eventKey="0">
-                Running Process List
-              </Accordion.Toggle>
-            </Card.Header>
-            <Accordion.Collapse eventKey="0">
-              <Card.Body>
-                <Table responsive striped bordered hover>
-                  { process_lists }
-                </Table>
-              </Card.Body>
-            </Accordion.Collapse>
-          </Card>
-          <Card>
-            <Card.Header>
-              <Accordion.Toggle as={Button} variant="link" eventKey="1">
-                Installed Application List
-              </Accordion.Toggle>
-            </Card.Header>
-            <Accordion.Collapse eventKey="1">
-              <Card.Body>
-                <Table responsive striped bordered hover>
-                  { apps_lists }
-                </Table>
-              </Card.Body>
-            </Accordion.Collapse>
-          </Card>
-        </Accordion>
-    </>
-  );
+          );
+        };
+  
+        main_lists.push(
+          <>
+          <tr>
+            <td>Custom ID</td>
+            <td>{ g_devices[0].cid_ }</td>
+          </tr>
+          <tr>
+            <td>IPv4 Address</td>
+            <td>{ g_devices[0].ipv4_ }</td>
+          </tr>
+          <tr>
+            <td>MAC Address</td>
+            <td>{ g_devices[0].mac_ }</td>
+          </tr>
+          <tr>
+            <td>Device Name</td>
+            <td>{ g_devices[0].device_name_ }</td>
+          </tr>
+          <tr>
+            <td>OS</td>
+            <td>{ g_devices[0].os_ }</td>
+          </tr>
+          <tr>
+            <td>Processor</td>
+            <td>{ g_devices[0].cpu_ }</td>
+          </tr>
+          <tr>
+            <td>RAM</td>
+            <td>{ g_devices[0].mem_ }MB</td>
+          </tr>
+          <tr>
+            <td>CPU Usage</td>
+            <td><ProgressBar now={g_devices[0].cpu_usage_} label={`${g_devices[0].cpu_usage_.substring(0,4)}%`} /></td>
+          </tr> 
+          <tr>
+            <td>RAM Usage</td>
+            <td><ProgressBar max = {g_devices[0].mem_} now={ g_devices[0].mem_ - g_devices[0].mem_remain_} label={`${((g_devices[0].mem_ - g_devices[0].mem_remain_) / g_devices[0].mem_ * 100).toFixed(2) }%`} />({g_devices[0].mem_ - g_devices[0].mem_remain_}/{g_devices[0].mem_}MB)</td>
+          </tr>                     
+          <tr>
+            <td>User</td>
+            <td>{ g_devices[0].user_name_ }</td>
+          </tr>
+          </>
+        );
+      }
+      
+    }catch{
+      loading_spinner.push(<Spinner animation="border" variant="primary" className="centered" />);
+      return (<>{ loading_spinner }</>);
+    }
+    return (
+      <>
+        <Container>
+          { loading_spinner }
+          <Table responsive striped bordered hover>
+              { main_lists }
+          </Table>
+        </Container>
+        <Accordion defaultActiveKey="2">
+            <Card>
+              <Card.Header>
+                <Accordion.Toggle as={Button} variant="link" eventKey="0">
+                  Running Process List
+                </Accordion.Toggle>
+              </Card.Header>
+              <Accordion.Collapse eventKey="0">
+                <Card.Body>
+                  <Table responsive striped bordered hover>
+                    { process_lists }
+                  </Table>
+                </Card.Body>
+              </Accordion.Collapse>
+            </Card>
+            <Card>
+              <Card.Header>
+                <Accordion.Toggle as={Button} variant="link" eventKey="1">
+                  Installed Application List
+                </Accordion.Toggle>
+              </Card.Header>
+              <Accordion.Collapse eventKey="1">
+                <Card.Body>
+                  <Table responsive striped bordered hover>
+                    { apps_lists }
+                  </Table>
+                </Card.Body>
+              </Accordion.Collapse>
+            </Card>
+          </Accordion>
+      </>
+    );
+  }
 }
 
 export default Connection;
 export {
-  ChildComponent,
   UIList,
   UIDetail,
   UISearch,

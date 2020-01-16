@@ -18,7 +18,7 @@ import {UIList,UIDetail, UISearch} from './Connection';
 const routes = [
   {
     path: "/list",
-    component: List
+    component: UIList
   },
   {
     path: "/detail/:id",
@@ -39,8 +39,8 @@ export default function RouteConfigExample() {
             <RouteWithSubRoutes key={i} {...route} />
           ))}
           <Route exact path="/">
-            <List />
-          </Route>  
+            <UIList />
+          </Route>
         </Switch>
       </div>
     </Router>
@@ -61,13 +61,9 @@ function RouteWithSubRoutes(route) {
   );
 }
 
-function List() {
-  return UIList();
-}
-
 function Detail() {
   let { id } = useParams();
-  return UIDetail(id);
+  return <UIDetail sid={id}/>;
 }
 
 function Search() {

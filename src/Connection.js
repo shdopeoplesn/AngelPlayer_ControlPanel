@@ -16,6 +16,7 @@ import Spinner from 'react-bootstrap/Spinner'
 import icon_device_pc from './images/device_pc.png';
 
 
+
 class Device {
   constructor(sid,cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process) {
     this.sid_ = sid;
@@ -35,7 +36,7 @@ class Device {
 }
 
 var g_devices = [];
-const client = new WebSocket('ws://127.0.0.1:7779');
+const client = new WebSocket('ws://192.168.1.248:7779');
 let flag_connected = false;
 let flag_receive = false;
 class Connection extends React.Component {  

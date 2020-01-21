@@ -18,8 +18,7 @@ import icon_device_pc from './images/device_pc.png';
 
 
 class Device {
-  constructor(sid,cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process) {
-    this.sid_ = sid;
+  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process) {
     this.cid_ = cid;
     this.ipv4_ = ipv4;
     this.mac_ = mac;
@@ -37,7 +36,6 @@ class Device {
 
 var g_devices = [];
 const client = new WebSocket('ws://192.168.1.248:7779');
-let flag_connected = false;
 let flag_receive = false;
 class Connection extends React.Component {  
   componentWillMount() {
@@ -54,14 +52,12 @@ class Connection extends React.Component {
       }
       if(data === "ACK"){
         flag_receive = false
-        flag_connected = true;
         return 0
       }
       if(flag_receive === true){
         let data_array = JSON.parse(data)
         
         for(let i = 0; i < data_array.length; i++){
-          let sid = data_array[i]["sid"]
           let cid = data_array[i]["cid"]
           let ipv4 = data_array[i]["ipv4"]
           let mac = data_array[i]["mac"]
@@ -74,7 +70,7 @@ class Connection extends React.Component {
           let user_name = data_array[i]["user_name"]
           let apps = data_array[i]["apps"]
           let process = data_array[i]["process"]
-          g_devices.push(new Device(sid,cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process))
+          g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process))
         };
       }
     };
@@ -115,7 +111,7 @@ class UIList extends React.Component{
               <Card.Text>
                   { g_devices[i].device_name_ }
               </Card.Text>
-              <Link to={ "/detail/" + g_devices[i].sid_ }><Button variant="primary">Detail</Button></Link>
+              <Link to={ "/detail/" + g_devices[i].cid_ }><Button variant="primary">Detail</Button></Link>
             </Card.Body>
           </Card>
         </Col>
@@ -152,7 +148,7 @@ class UIDetail extends React.Component{
   sendMessage=()=>{
     //const {websocket} = this.props // websocket instance passed as props to the child component.
     try {
-        const data = new Buffer('GETID-' + this.props.sid).toString('base64');
+        const data = new Buffer('GETID-' + this.props.cid).toString('base64');
         client.send(data) //send data to the server
     } catch (error) {
         console.log(error) // catch error
@@ -165,7 +161,7 @@ class UIDetail extends React.Component{
     let loading_spinner = [];
     try{
       if(g_devices[0] != null){
-        var apps_array = g_devices[0].apps_
+        var apps_array = JSON.parse(g_devices[0].apps_)
         apps_lists.push(            
         <thead>
           <td col="2">Apps Name</td>
@@ -183,8 +179,7 @@ class UIDetail extends React.Component{
             </tr>
           );
         };
-      
-        var process_array = g_devices[0].process_
+        var process_array = JSON.parse(g_devices[0].process_)
         process_lists.push(            
         <thead>
           <td>PID</td>
@@ -200,7 +195,7 @@ class UIDetail extends React.Component{
             </tr>
           );
         };
-  
+        
         main_lists.push(
           <>
           <tr>
@@ -233,7 +228,7 @@ class UIDetail extends React.Component{
           </tr>
           <tr>
             <td>CPU Usage</td>
-            <td><ProgressBar now={g_devices[0].cpu_usage_} label={`${g_devices[0].cpu_usage_.substring(0,4)}%`} /></td>
+            <td><ProgressBar now={g_devices[0].cpu_usage_} label={`${g_devices[0].cpu_usage_.toString().substring(0,4)}%`} /></td>
           </tr> 
           <tr>
             <td>RAM Usage</td>
@@ -246,7 +241,6 @@ class UIDetail extends React.Component{
           </>
         );
       }
-      
     }catch{
       loading_spinner.push(<Spinner animation="border" variant="primary" className="centered" />);
       return (<>{ loading_spinner }</>);

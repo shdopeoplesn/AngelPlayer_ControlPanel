@@ -63,7 +63,7 @@ function RouteWithSubRoutes(route) {
 
 function Detail() {
   let { id } = useParams();
-  return <UIDetail sid={id}/>;
+  return <UIDetail cid={id}/>;
 }
 
 function Search() {

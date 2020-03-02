@@ -18,7 +18,7 @@ import icon_device_pc from './images/device_pc.png';
 
 
 class Device {
-  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process) {
+  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process,disks) {
     this.cid_ = cid;
     this.ipv4_ = ipv4;
     this.mac_ = mac;
@@ -31,6 +31,7 @@ class Device {
     this.user_name_ = user_name;
     this.apps_ = apps;
     this.process_ = process;
+    this.disks_ = disks;
   }
 }
 
@@ -70,7 +71,8 @@ class Connection extends React.Component {
           let user_name = data_array[i]["user_name"]
           let apps = data_array[i]["apps"]
           let process = data_array[i]["process"]
-          g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process))
+          let disks = data_array[i]["disks"]
+          g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process,disks))
         };
       }
     };
@@ -136,7 +138,7 @@ class UIList extends React.Component{
 
 
 class UISearch extends React.Component{
-  
+
 }
 
 
@@ -157,6 +159,7 @@ class UIDetail extends React.Component{
   render() {
     let apps_lists = [];
     let process_lists = [];
+    let disks_lists = [];
     let main_lists = [];
     let loading_spinner = [];
     try{
@@ -179,6 +182,7 @@ class UIDetail extends React.Component{
             </tr>
           );
         };
+
         var process_array = JSON.parse(g_devices[0].process_)
         process_lists.push(            
         <thead>
@@ -192,6 +196,29 @@ class UIDetail extends React.Component{
             <td>{ process_array[i]["pid_"] }</td>
             <td>{ process_array[i]["name_"] }</td>
             <td>{ process_array[i]["mem_usage_"]/1024/1024 }MB</td>
+            </tr>
+          );
+        };
+
+        var disks_array = JSON.parse(g_devices[0].disks_)
+        disks_lists.push(            
+        <thead>
+          <td>Disk Name</td>
+          <td>Disk Label</td>
+          <td>Disk Type</td>
+          <td>Disk Format</td>
+          <td>Disk Size</td>
+          <td>Disk Free Space</td>
+        </thead>);
+        for(let i = 0; i < disks_array.length; i++){
+          disks_lists.push(
+            <tr>
+            <td>{ disks_array[i]["name_"] }</td>
+            <td>{ disks_array[i]["label_"] }</td>
+            <td>{ disks_array[i]["type_"] }</td>
+            <td>{ disks_array[i]["format_"] }</td>
+            <td>{ disks_array[i]["size_"]/1024/1024/1024 }GB</td>
+            <td>{ disks_array[i]["remain_"]/1024/1024/1024 }GB</td>
             </tr>
           );
         };
@@ -251,6 +278,9 @@ class UIDetail extends React.Component{
           { loading_spinner }
           <Table responsive striped bordered hover>
               { main_lists }
+          </Table>
+          <Table responsive striped bordered hover>
+              { disks_lists }
           </Table>
         </Container>
         <Accordion defaultActiveKey="2">

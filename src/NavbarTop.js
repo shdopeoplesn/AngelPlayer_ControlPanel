@@ -42,10 +42,6 @@ class NavbarTop extends React.Component {
                 <NavDropdown.Item href="#action/3.4">test4</NavDropdown.Item>
               </NavDropdown>
             </Nav>
-            <Form inline>
-              <FormControl value={this.state.value} onChange={this.handleChange} type="text" placeholder="Search" className="mr-sm-2" />
-              <Button href={this.state.url} type="submit" variant="outline-success">Search</Button>
-            </Form>
           </Navbar.Collapse>
         </Navbar>
       );

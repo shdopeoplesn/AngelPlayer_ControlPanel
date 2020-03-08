@@ -18,7 +18,7 @@ import icon_device_pc from './images/device_pc.png';
 
 
 class Device {
-  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process,disks) {
+  constructor(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process,disks,disks_usage) {
     this.cid_ = cid;
     this.ipv4_ = ipv4;
     this.mac_ = mac;
@@ -32,6 +32,7 @@ class Device {
     this.apps_ = apps;
     this.process_ = process;
     this.disks_ = disks;
+    this.disks_usage_ = disks_usage;
   }
 }
 
@@ -72,7 +73,8 @@ class Connection extends React.Component {
           let apps = data_array[i]["apps"]
           let process = data_array[i]["process"]
           let disks = data_array[i]["disks"]
-          g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process,disks))
+          let disks_usage = data_array[i]["disks_usage"]
+          g_devices.push(new Device(cid,ipv4,mac,device_name,os,cpu,mem,cpu_usage,mem_remain,user_name,apps,process,disks,disks_usage))
         };
       }
     };
@@ -222,7 +224,7 @@ class UIDetail extends React.Component{
             </tr>
           );
         };
-        
+
         main_lists.push(
           <>
           <tr>
@@ -260,7 +262,11 @@ class UIDetail extends React.Component{
           <tr>
             <td>RAM Usage</td>
             <td><ProgressBar max = {g_devices[0].mem_} now={ g_devices[0].mem_ - g_devices[0].mem_remain_} label={`${((g_devices[0].mem_ - g_devices[0].mem_remain_) / g_devices[0].mem_ * 100).toFixed(2) }%`} />({g_devices[0].mem_ - g_devices[0].mem_remain_}/{g_devices[0].mem_}MB)</td>
-          </tr>                     
+          </tr>               
+          <tr>
+            <td>Disks Usage</td>
+            <td><ProgressBar max = {100} now={ g_devices[0].disks_usage_ } label={`${(g_devices[0].disks_usage_).toFixed(2) }%`} /></td>
+          </tr> 
           <tr>
             <td>User</td>
             <td>{ g_devices[0].user_name_ }</td>
